@@ -9,7 +9,7 @@ export const useSocket = () => {
 
 export const SocketProvider = ({ children }) => {
   const socket = useMemo(() => {
-    return io(import.meta.env.VITE_BACKEND_URL || "https://vercel.com/tanishq-manglors-projects/nexmeet/DqJTbXAZJMdnPcT4eRG1jpgm6skK", {
+    return io(import.meta.env.VITE_BACKEND_URL || "https://nexmeet-ten.vercel.app/", {
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       transports: ["websocket", "polling"],
