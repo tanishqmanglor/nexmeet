@@ -6,7 +6,7 @@ const { Server } = require("socket.io");
 const app = express();
 
 const ALLOWED_ORIGINS = [
-  "https://nexmeet-7di9-git-main-tanishq-manglors-projects.vercel.app/",
+  "https://nexmeet-tanishqmanglor-p3ha.onrender.com",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
