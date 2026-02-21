@@ -10,46 +10,57 @@ const PeerContext = React.createContext(null);
 
 export const usePeer = () => useContext(PeerContext);
 
+const ICE_CONFIG = {
+  iceServers: [
+    {
+      urls: [
+        "stun:stun.l.google.com:19302",
+        "stun:stun1.l.google.com:19302",
+        "stun:stun2.l.google.com:19302",
+      ],
+    },
+    // Free TURN servers — required for production (handles NAT/firewall)
+    {
+      urls: "turn:openrelay.metered.ca:80",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
+    {
+      urls: "turn:openrelay.metered.ca:443",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
+    {
+      urls: "turn:openrelay.metered.ca:443?transport=tcp",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
+  ],
+};
+
 export const PeerProvider = ({ children }) => {
   const [remoteStream, setRemoteStream]       = useState(null);
   const [connectionState, setConnectionState] = useState("new");
 
-  const peer = useMemo(
-    () =>
-      new RTCPeerConnection({
-        iceServers: [
-          {
-            urls: [
-              "stun:stun.l.google.com:19302",
-              "stun:stun1.l.google.com:19302",
-              "stun:stun2.l.google.com:19302",
-            ],
-          },
-          // ✅ Free TURN servers — required for production (handles NAT/firewall)
-          {
-            urls: "turn:openrelay.metered.ca:80",
-            username: "openrelayproject",
-            credential: "openrelayproject",
-          },
-          {
-            urls: "turn:openrelay.metered.ca:443",
-            username: "openrelayproject",
-            credential: "openrelayproject",
-          },
-          {
-            urls: "turn:openrelay.metered.ca:443?transport=tcp",
-            username: "openrelayproject",
-            credential: "openrelayproject",
-          },
-        ],
-      }),
-    []
-  );
+  // ✅ Use state so peer can be recreated on disconnect/reconnect
+  const [peer, setPeer] = useState(() => new RTCPeerConnection(ICE_CONFIG));
 
+  // ✅ Reset peer — call this when remote disconnects so next call gets a fresh peer
+  const resetPeer = useCallback(() => {
+    setPeer((oldPeer) => {
+      oldPeer.close();
+      return new RTCPeerConnection(ICE_CONFIG);
+    });
+    setRemoteStream(null);
+    setConnectionState("new");
+  }, []);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => { peer.close(); };
   }, [peer]);
 
+  // Connection state
   useEffect(() => {
     const handleConnectionStateChange = () => {
       setConnectionState(peer.connectionState);
@@ -109,7 +120,10 @@ export const PeerProvider = ({ children }) => {
   }, [peer]);
 
   return (
-    <PeerContext.Provider value={{ peer, createOffer, createAnswer, setRemoteAnswer, sendStream, remoteStream, connectionState }}>
+    <PeerContext.Provider value={{
+      peer, createOffer, createAnswer, setRemoteAnswer,
+      sendStream, remoteStream, connectionState, resetPeer,
+    }}>
       {children}
     </PeerContext.Provider>
   );

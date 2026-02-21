@@ -8,12 +8,14 @@ const app = express();
 const ALLOWED_ORIGINS = [
   "https://nexmeet-tanishqmanglor-p3ha.onrender.com",
   process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "http://localhost:3000",
 ].filter(Boolean);
 
 app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use(express.json());
 
-// ✅ Health check — Render pings GET / to confirm server is alive
+// Health check — Render pings GET / to confirm server is alive
 app.get("/", (req, res) => {
   res.json({ status: "✅ NexMeet backend is running!" });
 });
@@ -26,7 +28,9 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     credentials: true,
   },
-  transports: ["websocket", "polling"],
+  transports: ["polling", "websocket"], // ✅ polling first — survives Render cold start
+  pingTimeout: 60000,                   // ✅ keep connections alive longer
+  pingInterval: 25000,
 });
 
 // ── In-memory state ────────────────────────────────────────────────────────────
@@ -51,16 +55,24 @@ io.on("connection", (socket) => {
   console.log("[+] Connected:", socket.id);
 
   socket.on("join-room", ({ roomId, emailId }) => {
+    // ✅ FIXED — clean up stale socket entries BEFORE checking room size
+    // This prevents the room appearing full when same user reconnects
+    const oldSocketId = emailToSocketMapping.get(emailId);
+    if (oldSocketId && oldSocketId !== socket.id) {
+      console.log(`[Room] Cleaning stale socket for ${emailId}: ${oldSocketId}`);
+      socketToEmailMapping.delete(oldSocketId);
+      socketToRoomMapping.delete(oldSocketId);
+      emailToSocketMapping.delete(emailId);
+    }
+
+    // Now check room size with clean data
     const currentMembers = getRoomMembers(roomId);
     if (currentMembers.length >= MAX_ROOM_SIZE) {
       socket.emit("room-full", { roomId });
+      console.log(`[Room] ${emailId} blocked — room ${roomId} is full`);
       return;
     }
-    const oldSocketId = emailToSocketMapping.get(emailId);
-    if (oldSocketId && oldSocketId !== socket.id) {
-      socketToEmailMapping.delete(oldSocketId);
-      socketToRoomMapping.delete(oldSocketId);
-    }
+
     emailToSocketMapping.set(emailId, socket.id);
     socketToEmailMapping.set(socket.id, emailId);
     socketToRoomMapping.set(socket.id, roomId);
@@ -98,7 +110,7 @@ io.on("connection", (socket) => {
     if (!roomId || !message?.trim()) return;
     socket.to(roomId).emit("receive-message", {
       sender, message,
-      time: new Date().toLocaleTimeString(),
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     });
   });
 
