@@ -94,13 +94,10 @@ const VideoTile = ({ videoRef, label, isMuted, speaking, waiting, waitingLabel, 
       transition: "border-color 0.3s, box-shadow 0.3s",
     }}
   >
-    {/* Subtle light shimmer */}
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse at 30% 20%,rgba(245,197,163,0.18) 0%,transparent 60%)" }} />
-
     <video ref={videoRef} autoPlay playsInline muted={isMuted}
       style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
 
-    {/* Waiting overlay */}
     <AnimatePresence>
       {waiting && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -113,7 +110,6 @@ const VideoTile = ({ videoRef, label, isMuted, speaking, waiting, waitingLabel, 
       )}
     </AnimatePresence>
 
-    {/* Speaking ring */}
     <AnimatePresence>
       {speaking && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: [0.65,0], scale: [1,1.03] }} exit={{ opacity: 0 }} transition={{ duration: 1.3, repeat: Infinity }}
@@ -121,7 +117,6 @@ const VideoTile = ({ videoRef, label, isMuted, speaking, waiting, waitingLabel, 
       )}
     </AnimatePresence>
 
-    {/* ✅ RAISE HAND popup overlay on the video tile */}
     <AnimatePresence>
       {handRaised && (
         <motion.div
@@ -130,12 +125,10 @@ const VideoTile = ({ videoRef, label, isMuted, speaking, waiting, waitingLabel, 
           exit={{ scale: 0, opacity: 0, y: 30 }}
           transition={{ type: "spring", stiffness: 320, damping: 22 }}
           style={{
-            position: "absolute",
-            top: "50%", left: "50%",
+            position: "absolute", top: "50%", left: "50%",
             transform: "translate(-50%,-50%)",
             display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
-            background: "rgba(255,255,255,0.93)",
-            backdropFilter: "blur(18px)",
+            background: "rgba(255,255,255,0.93)", backdropFilter: "blur(18px)",
             borderRadius: 22, padding: "18px 32px",
             border: "2px solid rgba(123,47,190,0.22)",
             boxShadow: "0 16px 48px rgba(123,47,190,0.28)",
@@ -147,17 +140,13 @@ const VideoTile = ({ videoRef, label, isMuted, speaking, waiting, waitingLabel, 
             transition={{ duration: 1.1, repeat: Infinity, repeatDelay: 0.8 }}
             style={{ fontSize: 50, lineHeight: 1, display: "block" }}
           >✋</motion.span>
-          <span style={{
-            fontFamily: "'Caveat Brush', cursive", fontSize: 15, color: "#5A1A9A",
-            fontWeight: 700, whiteSpace: "nowrap",
-          }}>
+          <span style={{ fontFamily: "'Caveat Brush', cursive", fontSize: 15, color: "#5A1A9A", fontWeight: 700, whiteSpace: "nowrap" }}>
             {label} raised hand!
           </span>
         </motion.div>
       )}
     </AnimatePresence>
 
-    {/* Name label */}
     <motion.div
       initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 + 0.2 }}
@@ -184,24 +173,24 @@ const Room = () => {
   const { socket } = useSocket();
   const { peer, createOffer, createAnswer, setRemoteAnswer, sendStream, remoteStream, connectionState } = usePeer();
 
-  const [remoteEmailId, setRemoteEmailId]         = useState(null);
-  const [myStream, setMyStream]                   = useState(null);
-  const [roomFull, setRoomFull]                   = useState(false);
+  const [remoteEmailId, setRemoteEmailId]           = useState(null);
+  const [myStream, setMyStream]                     = useState(null);
+  const [roomFull, setRoomFull]                     = useState(false);
   const [remoteDisconnected, setRemoteDisconnected] = useState(false);
-  const [isMuted, setIsMuted]                     = useState(false);
-  const [isCameraOff, setIsCameraOff]             = useState(false);
-  const [isScreenSharing, setIsScreenSharing]     = useState(false);
-  const [chatOpen, setChatOpen]                   = useState(false);
-  const [message, setMessage]                     = useState("");
-  const [messages, setMessages]                   = useState([]);
-  const [unreadCount, setUnreadCount]             = useState(0);
-  const [handRaised, setHandRaised]               = useState(false);
-  const [remoteHandRaised, setRemoteHandRaised]   = useState(false);
-  const [mediaRecorder, setMediaRecorder]         = useState(null);
-  const [recordedChunks, setRecordedChunks]       = useState([]);
-  const [isRecording, setIsRecording]             = useState(false);
-  const [callDuration, setCallDuration]           = useState(0);
-  const [isMobile, setIsMobile]                   = useState(false);
+  const [isMuted, setIsMuted]                       = useState(false);
+  const [isCameraOff, setIsCameraOff]               = useState(false);
+  const [isScreenSharing, setIsScreenSharing]       = useState(false);
+  const [chatOpen, setChatOpen]                     = useState(false);
+  const [message, setMessage]                       = useState("");
+  const [messages, setMessages]                     = useState([]);
+  const [unreadCount, setUnreadCount]               = useState(0);
+  const [handRaised, setHandRaised]                 = useState(false);
+  const [remoteHandRaised, setRemoteHandRaised]     = useState(false);
+  const [mediaRecorder, setMediaRecorder]           = useState(null);
+  const [recordedChunks, setRecordedChunks]         = useState([]);
+  const [isRecording, setIsRecording]               = useState(false);
+  const [callDuration, setCallDuration]             = useState(0);
+  const [isMobile, setIsMobile]                     = useState(false);
 
   const myVideoRef            = useRef(null);
   const remoteVideoRef        = useRef(null);
@@ -235,7 +224,7 @@ const Room = () => {
   const formatDuration = (s) =>
     `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 
-  // ── Camera — FIXED race condition ──────────────────────────────────────────
+  // Camera
   useEffect(() => {
     let stream;
     let cancelled = false;
@@ -279,7 +268,7 @@ const Room = () => {
   // Chat scroll
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  // Unread count — only for incoming messages when chat closed
+  // Unread count
   useEffect(() => {
     if (messages.length > prevMsgLenRef.current) {
       const last = messages[messages.length - 1];
@@ -323,7 +312,7 @@ const Room = () => {
     return () => socket.off("receive-message", h);
   }, [socket]);
 
-  // ✅ Hand raise
+  // Hand raise
   const toggleHand = () => {
     const next = !handRaised;
     setHandRaised(next);
@@ -356,25 +345,40 @@ const Room = () => {
     }
   }, [isRecording, recordedChunks]);
 
-  // Signaling
+  // ── Signaling ──────────────────────────────────────────────────────────────
   const handleExistingUsers = useCallback(async ({ users }) => {
     for (const emailId of users) {
-      setRemoteEmailId(emailId); setRemoteDisconnected(false);
+      setRemoteEmailId(emailId);
+      setRemoteDisconnected(false);
+      // ✅ ADDED: store remote email so ConnectingPage can show their name
+      sessionStorage.setItem("remoteEmail", emailId);
       if (!myStreamRef.current) { pendingOfferEmailsRef.current.push(emailId); continue; }
-      try { sendStream(myStreamRef.current); await new Promise((r) => setTimeout(r, 500)); const offer = await createOffer(); socket.emit("call-user", { offer, emailId }); }
-      catch (err) { console.error("[Signaling] createOffer:", err); }
+      try {
+        sendStream(myStreamRef.current);
+        await new Promise((r) => setTimeout(r, 500));
+        const offer = await createOffer();
+        socket.emit("call-user", { offer, emailId });
+      } catch (err) { console.error("[Signaling] createOffer:", err); }
     }
   }, [createOffer, sendStream, socket]);
 
   const handleNewUserJoined = useCallback(async ({ emailId }) => {
-    setRemoteEmailId(emailId); setRemoteDisconnected(false);
+    setRemoteEmailId(emailId);
+    setRemoteDisconnected(false);
+    // ✅ ADDED: store remote email so ConnectingPage can show their name
+    sessionStorage.setItem("remoteEmail", emailId);
     if (!myStreamRef.current) { pendingOfferEmailsRef.current.push(emailId); return; }
-    try { sendStream(myStreamRef.current); await new Promise((r) => setTimeout(r, 500)); const offer = await createOffer(); socket.emit("call-user", { offer, emailId }); }
-    catch (err) { console.error("[Signaling] createOffer:", err); }
+    try {
+      sendStream(myStreamRef.current);
+      await new Promise((r) => setTimeout(r, 500));
+      const offer = await createOffer();
+      socket.emit("call-user", { offer, emailId });
+    } catch (err) { console.error("[Signaling] createOffer:", err); }
   }, [createOffer, sendStream, socket]);
 
   const handleIncomingCall = useCallback(async ({ from, offer }) => {
-    setRemoteEmailId(from); setRemoteDisconnected(false);
+    setRemoteEmailId(from);
+    setRemoteDisconnected(false);
     if (myStreamRef.current) sendStream(myStreamRef.current);
     const answer = await createAnswer(offer);
     socket.emit("call-accepted", { answer, emailId: from });
@@ -382,10 +386,13 @@ const Room = () => {
 
   const handleCallAccepted     = useCallback(async ({ answer }) => { await setRemoteAnswer(answer); }, [setRemoteAnswer]);
   const handleUserDisconnected = useCallback(() => {
-    setRemoteEmailId(null); setRemoteDisconnected(true);
+    setRemoteEmailId(null);
+    setRemoteDisconnected(true);
     setRemoteHandRaised(false);
+    sessionStorage.removeItem("remoteEmail"); // ✅ ADDED: clean up on disconnect
     pendingOfferEmailsRef.current = [];
-    callStartRef.current = null; setCallDuration(0);
+    callStartRef.current = null;
+    setCallDuration(0);
   }, []);
   const handleRoomFull = useCallback(() => setRoomFull(true), []);
 
@@ -470,7 +477,7 @@ const Room = () => {
             style={{ position: "absolute", bottom: -80, right: 240, width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle,rgba(245,197,163,0.38) 0%,transparent 70%)" }} />
         </div>
 
-        {/* ── NAVBAR ─────────────────────────────────────────────────────── */}
+        {/* ── NAVBAR ── */}
         <motion.nav
           initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 22 }}
@@ -482,7 +489,6 @@ const Room = () => {
             background: "rgba(255,255,255,0.62)", backdropFilter: "blur(20px)", zIndex: 20,
           }}
         >
-          {/* Logo */}
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <motion.img src={NexMeetLogo} alt="NexMeet"
               animate={{ rotate: [0,5,-5,0] }} transition={{ duration: 5, repeat: Infinity }}
@@ -498,7 +504,6 @@ const Room = () => {
             )}
           </div>
 
-          {/* Connection state */}
           <motion.div
             animate={connectionState === "connected" ? { opacity: [1,0.55,1] } : {}}
             transition={{ duration: 2, repeat: Infinity }}
@@ -510,7 +515,6 @@ const Room = () => {
             </span>
           </motion.div>
 
-          {/* Remote user */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {remoteEmailId && (
               <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
@@ -536,46 +540,27 @@ const Room = () => {
           )}
         </AnimatePresence>
 
-        {/* ── Main content ──────────────────────────────────────────────────── */}
-        <div style={{
-          flex: 1, display: "flex", overflow: "hidden",
-          padding: isMobile ? "8px" : "12px 14px",
-          gap: isMobile ? 8 : 12, minHeight: 0,
-        }}>
-
-          {/* ── Both videos equal size side-by-side (desktop) / stacked (mobile) */}
-          <div style={{
-            flex: 1, display: "flex",
-            flexDirection: isMobile ? "column" : "row",
-            gap: isMobile ? 8 : 12,
-            minWidth: 0, minHeight: 0,
-          }}>
-            {/* Remote — equal flex */}
+        {/* ── Main content ── */}
+        <div style={{ flex: 1, display: "flex", overflow: "hidden", padding: isMobile ? "8px" : "12px 14px", gap: isMobile ? 8 : 12, minHeight: 0 }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 8 : 12, minWidth: 0, minHeight: 0 }}>
             <div style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
               <VideoTile
-                videoRef={remoteVideoRef}
-                label={remoteEmailId ?? "Remote"}
-                isMuted={false}
-                speaking={connectionState === "connected" && !!remoteStream}
+                videoRef={remoteVideoRef} label={remoteEmailId ?? "Remote"}
+                isMuted={false} speaking={connectionState === "connected" && !!remoteStream}
                 waiting={!remoteStream}
                 waitingLabel={remoteEmailId ? `Connecting with ${remoteEmailId}…` : "Share the room link to invite someone"}
-                index={0}
-                handRaised={remoteHandRaised}
+                index={0} handRaised={remoteHandRaised}
               />
             </div>
-
-            {/* My video — same equal flex */}
             <div style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
               <VideoTile
-                videoRef={myVideoRef}
-                label={`You${isScreenSharing ? " 🖥" : ""}`}
-                isMuted speaking={false} waiting={false} index={1}
-                handRaised={handRaised}
+                videoRef={myVideoRef} label={`You${isScreenSharing ? " 🖥" : ""}`}
+                isMuted speaking={false} waiting={false} index={1} handRaised={handRaised}
               />
             </div>
           </div>
 
-          {/* ── Sliding chat panel ────────────────────────────────────────── */}
+          {/* Chat panel */}
           <AnimatePresence>
             {chatOpen && (
               <motion.div
@@ -585,31 +570,19 @@ const Room = () => {
                 exit={{ x: isMobile ? 0 : 320, y: isMobile ? "100%" : 0, opacity: 0 }}
                 transition={{ type: "spring", stiffness: 280, damping: 28 }}
                 style={{
-                  ...(isMobile
-                    ? { position: "absolute", inset: 0, zIndex: 50, borderRadius: 20 }
-                    : { width: 296, flexShrink: 0 }),
+                  ...(isMobile ? { position: "absolute", inset: 0, zIndex: 50, borderRadius: 20 } : { width: 296, flexShrink: 0 }),
                   display: "flex", flexDirection: "column",
                   background: "rgba(255,255,255,0.9)", backdropFilter: "blur(24px)",
                   border: "1.5px solid rgba(123,47,190,0.15)", borderRadius: 20,
-                  overflow: "hidden",
-                  boxShadow: "0 12px 40px rgba(123,47,190,0.16)",
+                  overflow: "hidden", boxShadow: "0 12px 40px rgba(123,47,190,0.16)",
                 }}
               >
-                {/* Header */}
-                <div style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  padding: "13px 16px", borderBottom: "1.5px solid rgba(123,47,190,0.1)",
-                  background: "rgba(123,47,190,0.05)", flexShrink: 0,
-                }}>
-                  <span style={{ color: "#5A1A9A", fontFamily: "'Caveat Brush', cursive", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 7 }}>
-                    <ChatIcon /> Chat
-                  </span>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 16px", borderBottom: "1.5px solid rgba(123,47,190,0.1)", background: "rgba(123,47,190,0.05)", flexShrink: 0 }}>
+                  <span style={{ color: "#5A1A9A", fontFamily: "'Caveat Brush', cursive", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 7 }}><ChatIcon /> Chat</span>
                   <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setChatOpen(false)}
                     style={{ background: "rgba(123,47,190,0.08)", border: "1.5px solid rgba(123,47,190,0.18)", borderRadius: 8, width: 28, height: 28, cursor: "pointer", color: "#7B2FBE", display: "flex", alignItems: "center", justifyContent: "center" }}
                   ><CloseIcon /></motion.button>
                 </div>
-
-                {/* Messages */}
                 <div style={{ flex: 1, overflowY: "auto", padding: "12px", display: "flex", flexDirection: "column", gap: 10 }}>
                   {messages.length === 0 && (
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 10, opacity: 0.42 }}>
@@ -622,26 +595,14 @@ const Room = () => {
                       style={{ display: "flex", flexDirection: "column", alignItems: msg.sender === "Me" ? "flex-end" : "flex-start", gap: 3 }}
                     >
                       {msg.sender !== "Me" && <span style={{ fontSize: 10, fontWeight: 600, color: "#8B5E9B", paddingLeft: 4, fontFamily: "'Caveat Brush', cursive" }}>{msg.sender}</span>}
-                      <div style={{
-                        maxWidth: "85%", padding: "8px 13px",
-                        borderRadius: msg.sender === "Me" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                        background: msg.sender === "Me" ? "linear-gradient(135deg,#7B2FBE,#C084FC)" : "rgba(245,197,163,0.3)",
-                        border: msg.sender === "Me" ? "none" : "1px solid rgba(232,160,122,0.4)",
-                        fontSize: 13, color: msg.sender === "Me" ? "#fff" : "#2D1B4E",
-                        lineHeight: 1.5, fontFamily: "'Forum', serif",
-                      }}>{msg.message}</div>
+                      <div style={{ maxWidth: "85%", padding: "8px 13px", borderRadius: msg.sender === "Me" ? "16px 16px 4px 16px" : "16px 16px 16px 4px", background: msg.sender === "Me" ? "linear-gradient(135deg,#7B2FBE,#C084FC)" : "rgba(245,197,163,0.3)", border: msg.sender === "Me" ? "none" : "1px solid rgba(232,160,122,0.4)", fontSize: 13, color: msg.sender === "Me" ? "#fff" : "#2D1B4E", lineHeight: 1.5, fontFamily: "'Forum', serif" }}>{msg.message}</div>
                       <span style={{ fontSize: 9, color: "rgba(90,26,154,0.35)", padding: "0 4px", fontFamily: "'Caveat Brush', cursive" }}>{msg.time}</span>
                     </motion.div>
                   ))}
                   <div ref={chatEndRef} />
                 </div>
-
-                {/* Input */}
                 <div style={{ padding: "10px 12px", borderTop: "1.5px solid rgba(123,47,190,0.1)", display: "flex", gap: 8, flexShrink: 0 }}>
-                  <input
-                    value={message} onChange={(e) => setMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                    placeholder="Type a message…"
+                  <input value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage()} placeholder="Type a message…"
                     style={{ flex: 1, background: "rgba(245,197,163,0.15)", border: "1.5px solid rgba(123,47,190,0.15)", borderRadius: 12, padding: "9px 13px", color: "#2D1B4E", fontSize: 13, fontFamily: "'Forum', serif" }}
                   />
                   <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={sendMessage}
@@ -653,69 +614,31 @@ const Room = () => {
           </AnimatePresence>
         </div>
 
-        {/* ── CONTROLS BAR ─────────────────────────────────────────────────── */}
+        {/* ── CONTROLS BAR ── */}
         <motion.div
           initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 22 }}
-          style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
-            gap: isMobile ? 4 : 8,
-            padding: isMobile ? "8px 4px env(safe-area-inset-bottom,8px)" : "10px 20px",
-            flexShrink: 0, flexWrap: "wrap",
-            borderTop: "1.5px solid rgba(123,47,190,0.12)",
-            background: "rgba(255,255,255,0.65)", backdropFilter: "blur(20px)",
-          }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: isMobile ? 4 : 8, padding: isMobile ? "8px 4px env(safe-area-inset-bottom,8px)" : "10px 20px", flexShrink: 0, flexWrap: "wrap", borderTop: "1.5px solid rgba(123,47,190,0.12)", background: "rgba(255,255,255,0.65)", backdropFilter: "blur(20px)" }}
         >
-          <CtrlBtn onClick={toggleMute}       active={isMuted}        icon={isMuted ? MicOffIcon : MicOnIcon}       label={isMuted ? "Unmute" : "Mute"} />
-          <CtrlBtn onClick={toggleCamera}     active={isCameraOff}    icon={isCameraOff ? CamOffIcon : CamOnIcon}  label={isCameraOff ? "Cam On" : "Cam Off"} />
-          <CtrlBtn
-            onClick={isScreenSharing ? stopScreenShare : startScreenShare}
-            active={isScreenSharing} icon={ScreenIcon}
-            label={isScreenSharing ? "Stop" : "Share"}
-          />
+          <CtrlBtn onClick={toggleMute}   active={isMuted}    icon={isMuted ? MicOffIcon : MicOnIcon}     label={isMuted ? "Unmute" : "Mute"} />
+          <CtrlBtn onClick={toggleCamera} active={isCameraOff} icon={isCameraOff ? CamOffIcon : CamOnIcon} label={isCameraOff ? "Cam On" : "Cam Off"} />
+          <CtrlBtn onClick={isScreenSharing ? stopScreenShare : startScreenShare} active={isScreenSharing} icon={ScreenIcon} label={isScreenSharing ? "Stop" : "Share"} />
 
-          {/* ✅ Raise Hand — waving animation when active */}
-          <motion.div
-            animate={handRaised ? { rotate: [0, 14, -10, 14, 0] } : {}}
-            transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.5 }}
-          >
-            <CtrlBtn
-              onClick={toggleHand} active={handRaised}
-              icon={HandIcon} label={handRaised ? "Lower" : "Raise"}
-            />
+          <motion.div animate={handRaised ? { rotate: [0, 14, -10, 14, 0] } : {}} transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.5 }}>
+            <CtrlBtn onClick={toggleHand} active={handRaised} icon={HandIcon} label={handRaised ? "Lower" : "Raise"} />
           </motion.div>
 
-          <CtrlBtn
-            onClick={isRecording ? stopRecording : startRecording}
-            active={isRecording} danger={isRecording}
-            icon={isRecording ? StopIcon : RecordIcon}
-            label={isRecording ? "Stop" : "Record"}
-            disabled={!remoteStream && !isRecording}
-          />
+          <CtrlBtn onClick={isRecording ? stopRecording : startRecording} active={isRecording} danger={isRecording} icon={isRecording ? StopIcon : RecordIcon} label={isRecording ? "Stop" : "Record"} disabled={!remoteStream && !isRecording} />
 
-          {/* Divider */}
+          <div style={{ width: 1, height: 34, background: "rgba(123,47,190,0.18)", margin: "0 2px", flexShrink: 0 }} />
+          <CtrlBtn onClick={() => setChatOpen((p) => !p)} active={chatOpen} icon={ChatIcon} label="Chat" badge={unreadCount} />
           <div style={{ width: 1, height: 34, background: "rgba(123,47,190,0.18)", margin: "0 2px", flexShrink: 0 }} />
 
-          <CtrlBtn
-            onClick={() => setChatOpen((p) => !p)}
-            active={chatOpen} icon={ChatIcon} label="Chat"
-            badge={unreadCount}
-          />
-
-          {/* Divider */}
-          <div style={{ width: 1, height: 34, background: "rgba(123,47,190,0.18)", margin: "0 2px", flexShrink: 0 }} />
-
-          {/* End Call */}
           <motion.button
             whileHover={{ scale: 1.05, boxShadow: "0 8px 32px rgba(239,68,68,0.5)" }}
             whileTap={{ scale: 0.95 }}
             onClick={() => window.location.href = "/"}
-            style={{
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-              padding: isMobile ? "9px 14px" : "9px 20px", borderRadius: 16, border: "none",
-              cursor: "pointer", background: "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff",
-              boxShadow: "0 4px 20px rgba(239,68,68,0.35)",
-            }}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: isMobile ? "9px 14px" : "9px 20px", borderRadius: 16, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", boxShadow: "0 4px 20px rgba(239,68,68,0.35)" }}
           >
             <PhoneOffIcon />
             <span style={{ fontFamily: "'Caveat Brush', cursive", fontSize: 10, opacity: 0.9, whiteSpace: "nowrap" }}>End Call</span>

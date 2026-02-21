@@ -13,8 +13,10 @@ const Home = () => {
   const [error, setError]     = useState("");
 
   const handleRoomJoined = useCallback(({ roomId }) => {
-    navigate(`/room/${roomId}`);
-  }, [navigate]);
+    // ✅ CHANGED: store email → go to ConnectingPage → it redirects to Room
+    sessionStorage.setItem("myEmail", email);
+    navigate(`/connecting/${roomId}`);
+  }, [navigate, email]); // ✅ added `email` to deps
 
   useEffect(() => {
     socket.on("joined-room", handleRoomJoined);
