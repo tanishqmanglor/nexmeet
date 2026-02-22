@@ -3,6 +3,7 @@ import { useSocket } from "../Providers/Socket";
 import { usePeer } from "../Providers/Peer";
 import { motion, AnimatePresence } from "framer-motion";
 import NexMeetLogo from "../assets/nexmeet-logo.png";
+import EmotionDetector from "../components/EmotionDetector"; // ✅ NEW
 
 const STATE_COLOR = {
   new: "#9B7BB0", connecting: "#E8A07A", connected: "#22c55e",
@@ -22,6 +23,14 @@ const RecordIcon   = () => <svg width="20" height="20" viewBox="0 0 24 24"><circ
 const StopIcon     = () => <svg width="20" height="20" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" fill="currentColor"/></svg>;
 const SendIcon     = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>;
 const CloseIcon    = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+
+// ✅ NEW — Brain icon for AI toggle button
+const BrainIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+    <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+  </svg>
+);
 
 // ── Control Button ─────────────────────────────────────────────────────────────
 const CtrlBtn = ({ onClick, label, icon: Icon, active, danger, disabled, badge }) => (
@@ -57,21 +66,11 @@ const CtrlBtn = ({ onClick, label, icon: Icon, active, danger, disabled, badge }
       }}
     >
       <Icon />
-      <span style={{
-        fontFamily: "'Caveat Brush', cursive", fontSize: 10, fontWeight: 600,
-        opacity: 0.78, whiteSpace: "nowrap",
-      }}>{label}</span>
+      <span style={{ fontFamily: "'Caveat Brush', cursive", fontSize: 10, fontWeight: 600, opacity: 0.78, whiteSpace: "nowrap" }}>{label}</span>
     </motion.button>
     {badge > 0 && (
-      <motion.div
-        initial={{ scale: 0 }} animate={{ scale: 1 }}
-        style={{
-          position: "absolute", top: -5, right: -5,
-          background: "#ef4444", color: "#fff", borderRadius: "50%",
-          width: 18, height: 18, fontSize: 9, fontWeight: 800,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          border: "2px solid #F0D5F7", pointerEvents: "none",
-        }}
+      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
+        style={{ position: "absolute", top: -5, right: -5, background: "#ef4444", color: "#fff", borderRadius: "50%", width: 18, height: 18, fontSize: 9, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #F0D5F7", pointerEvents: "none" }}
       >{badge > 9 ? "9+" : badge}</motion.div>
     )}
   </div>
@@ -95,9 +94,11 @@ const VideoTile = ({ videoRef, label, isMuted, speaking, waiting, waitingLabel, 
     }}
   >
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse at 30% 20%,rgba(245,197,163,0.18) 0%,transparent 60%)" }} />
+
     <video ref={videoRef} autoPlay playsInline muted={isMuted}
       style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
 
+    {/* Waiting overlay */}
     <AnimatePresence>
       {waiting && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -110,6 +111,7 @@ const VideoTile = ({ videoRef, label, isMuted, speaking, waiting, waitingLabel, 
       )}
     </AnimatePresence>
 
+    {/* Speaking ring */}
     <AnimatePresence>
       {speaking && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: [0.65,0], scale: [1,1.03] }} exit={{ opacity: 0 }} transition={{ duration: 1.3, repeat: Infinity }}
@@ -117,52 +119,26 @@ const VideoTile = ({ videoRef, label, isMuted, speaking, waiting, waitingLabel, 
       )}
     </AnimatePresence>
 
+    {/* Raise hand popup */}
     <AnimatePresence>
       {handRaised && (
         <motion.div
-          initial={{ scale: 0, opacity: 0, y: 30 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0, opacity: 0, y: 30 }}
+          initial={{ scale: 0, opacity: 0, y: 30 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0, opacity: 0, y: 30 }}
           transition={{ type: "spring", stiffness: 320, damping: 22 }}
-          style={{
-            position: "absolute", top: "50%", left: "50%",
-            transform: "translate(-50%,-50%)",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
-            background: "rgba(255,255,255,0.93)", backdropFilter: "blur(18px)",
-            borderRadius: 22, padding: "18px 32px",
-            border: "2px solid rgba(123,47,190,0.22)",
-            boxShadow: "0 16px 48px rgba(123,47,190,0.28)",
-            zIndex: 10, pointerEvents: "none",
-          }}
+          style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.93)", backdropFilter: "blur(18px)", borderRadius: 22, padding: "18px 32px", border: "2px solid rgba(123,47,190,0.22)", boxShadow: "0 16px 48px rgba(123,47,190,0.28)", zIndex: 10, pointerEvents: "none" }}
         >
-          <motion.span
-            animate={{ rotate: [0, 18, -12, 18, 0], scale: [1, 1.25, 1, 1.2, 1] }}
-            transition={{ duration: 1.1, repeat: Infinity, repeatDelay: 0.8 }}
-            style={{ fontSize: 50, lineHeight: 1, display: "block" }}
-          >✋</motion.span>
-          <span style={{ fontFamily: "'Caveat Brush', cursive", fontSize: 15, color: "#5A1A9A", fontWeight: 700, whiteSpace: "nowrap" }}>
-            {label} raised hand!
-          </span>
+          <motion.span animate={{ rotate: [0,18,-12,18,0], scale: [1,1.25,1,1.2,1] }} transition={{ duration: 1.1, repeat: Infinity, repeatDelay: 0.8 }} style={{ fontSize: 50, lineHeight: 1, display: "block" }}>✋</motion.span>
+          <span style={{ fontFamily: "'Caveat Brush', cursive", fontSize: 15, color: "#5A1A9A", fontWeight: 700, whiteSpace: "nowrap" }}>{label} raised hand!</span>
         </motion.div>
       )}
     </AnimatePresence>
 
+    {/* Name label */}
     <motion.div
-      initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 + 0.2 }}
-      style={{
-        position: "absolute", bottom: 10, left: 10,
-        background: "rgba(255,255,255,0.82)", backdropFilter: "blur(10px)",
-        borderRadius: 9, padding: "3px 11px",
-        color: "#5A1A9A", fontFamily: "'Caveat Brush', cursive", fontSize: 12, fontWeight: 600,
-        border: "1px solid rgba(123,47,190,0.18)",
-        display: "flex", alignItems: "center", gap: 5,
-      }}
+      initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 + 0.2 }}
+      style={{ position: "absolute", bottom: 10, left: 10, background: "rgba(255,255,255,0.82)", backdropFilter: "blur(10px)", borderRadius: 9, padding: "3px 11px", color: "#5A1A9A", fontFamily: "'Caveat Brush', cursive", fontSize: 12, fontWeight: 600, border: "1px solid rgba(123,47,190,0.18)", display: "flex", alignItems: "center", gap: 5 }}
     >
-      {speaking && (
-        <motion.span animate={{ scale: [1,1.5,1] }} transition={{ repeat: Infinity, duration: 0.7 }}
-          style={{ color: "#7B2FBE", fontSize: 7, lineHeight: 1 }}>●</motion.span>
-      )}
+      {speaking && <motion.span animate={{ scale: [1,1.5,1] }} transition={{ repeat: Infinity, duration: 0.7 }} style={{ color: "#7B2FBE", fontSize: 7, lineHeight: 1 }}>●</motion.span>}
       {label}
     </motion.div>
   </motion.div>
@@ -191,6 +167,11 @@ const Room = () => {
   const [isRecording, setIsRecording]               = useState(false);
   const [callDuration, setCallDuration]             = useState(0);
   const [isMobile, setIsMobile]                     = useState(false);
+
+  // ✅ NEW — AI Emotion state
+  const [emotionEnabled, setEmotionEnabled]         = useState(true);
+  const [myEmotion,      setMyEmotion]              = useState(null);
+  const [remoteEmotion,  setRemoteEmotion]          = useState(null);
 
   const myVideoRef            = useRef(null);
   const remoteVideoRef        = useRef(null);
@@ -226,8 +207,7 @@ const Room = () => {
 
   // Camera
   useEffect(() => {
-    let stream;
-    let cancelled = false;
+    let stream; let cancelled = false;
     async function getMedia() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -313,11 +293,7 @@ const Room = () => {
   }, [socket]);
 
   // Hand raise
-  const toggleHand = () => {
-    const next = !handRaised;
-    setHandRaised(next);
-    socket.emit("raise-hand", next);
-  };
+  const toggleHand = () => { const next = !handRaised; setHandRaised(next); socket.emit("raise-hand", next); };
 
   useEffect(() => {
     const h = ({ state }) => setRemoteHandRaised(state);
@@ -345,40 +321,27 @@ const Room = () => {
     }
   }, [isRecording, recordedChunks]);
 
-  // ── Signaling ──────────────────────────────────────────────────────────────
+  // Signaling
   const handleExistingUsers = useCallback(async ({ users }) => {
     for (const emailId of users) {
-      setRemoteEmailId(emailId);
-      setRemoteDisconnected(false);
-      // ✅ ADDED: store remote email so ConnectingPage can show their name
+      setRemoteEmailId(emailId); setRemoteDisconnected(false);
       sessionStorage.setItem("remoteEmail", emailId);
       if (!myStreamRef.current) { pendingOfferEmailsRef.current.push(emailId); continue; }
-      try {
-        sendStream(myStreamRef.current);
-        await new Promise((r) => setTimeout(r, 500));
-        const offer = await createOffer();
-        socket.emit("call-user", { offer, emailId });
-      } catch (err) { console.error("[Signaling] createOffer:", err); }
+      try { sendStream(myStreamRef.current); await new Promise((r) => setTimeout(r, 500)); const offer = await createOffer(); socket.emit("call-user", { offer, emailId }); }
+      catch (err) { console.error("[Signaling] createOffer:", err); }
     }
   }, [createOffer, sendStream, socket]);
 
   const handleNewUserJoined = useCallback(async ({ emailId }) => {
-    setRemoteEmailId(emailId);
-    setRemoteDisconnected(false);
-    // ✅ ADDED: store remote email so ConnectingPage can show their name
+    setRemoteEmailId(emailId); setRemoteDisconnected(false);
     sessionStorage.setItem("remoteEmail", emailId);
     if (!myStreamRef.current) { pendingOfferEmailsRef.current.push(emailId); return; }
-    try {
-      sendStream(myStreamRef.current);
-      await new Promise((r) => setTimeout(r, 500));
-      const offer = await createOffer();
-      socket.emit("call-user", { offer, emailId });
-    } catch (err) { console.error("[Signaling] createOffer:", err); }
+    try { sendStream(myStreamRef.current); await new Promise((r) => setTimeout(r, 500)); const offer = await createOffer(); socket.emit("call-user", { offer, emailId }); }
+    catch (err) { console.error("[Signaling] createOffer:", err); }
   }, [createOffer, sendStream, socket]);
 
   const handleIncomingCall = useCallback(async ({ from, offer }) => {
-    setRemoteEmailId(from);
-    setRemoteDisconnected(false);
+    setRemoteEmailId(from); setRemoteDisconnected(false);
     if (myStreamRef.current) sendStream(myStreamRef.current);
     const answer = await createAnswer(offer);
     socket.emit("call-accepted", { answer, emailId: from });
@@ -386,13 +349,10 @@ const Room = () => {
 
   const handleCallAccepted     = useCallback(async ({ answer }) => { await setRemoteAnswer(answer); }, [setRemoteAnswer]);
   const handleUserDisconnected = useCallback(() => {
-    setRemoteEmailId(null);
-    setRemoteDisconnected(true);
-    setRemoteHandRaised(false);
-    sessionStorage.removeItem("remoteEmail"); // ✅ ADDED: clean up on disconnect
-    pendingOfferEmailsRef.current = [];
-    callStartRef.current = null;
-    setCallDuration(0);
+    setRemoteEmailId(null); setRemoteDisconnected(true); setRemoteHandRaised(false);
+    setRemoteEmotion(null); // ✅ clear remote emotion on disconnect
+    sessionStorage.removeItem("remoteEmail");
+    pendingOfferEmailsRef.current = []; callStartRef.current = null; setCallDuration(0);
   }, []);
   const handleRoomFull = useCallback(() => setRoomFull(true), []);
 
@@ -462,12 +422,7 @@ const Room = () => {
       `}</style>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }}
-        style={{
-          width: "100vw", height: "100dvh",
-          background: "linear-gradient(135deg,#F0D5F7 0%,#E8C5F5 50%,#FDD5B0 100%)",
-          display: "flex", flexDirection: "column", fontFamily: "'Forum', serif",
-          overflow: "hidden", position: "relative",
-        }}
+        style={{ width: "100vw", height: "100dvh", background: "linear-gradient(135deg,#F0D5F7 0%,#E8C5F5 50%,#FDD5B0 100%)", display: "flex", flexDirection: "column", fontFamily: "'Forum', serif", overflow: "hidden", position: "relative" }}
       >
         {/* Orbs */}
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
@@ -478,22 +433,11 @@ const Room = () => {
         </div>
 
         {/* ── NAVBAR ── */}
-        <motion.nav
-          initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 22 }}
-          style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: isMobile ? "0 12px" : "0 22px",
-            height: isMobile ? 52 : 60, flexShrink: 0,
-            borderBottom: "1.5px solid rgba(123,47,190,0.12)",
-            background: "rgba(255,255,255,0.62)", backdropFilter: "blur(20px)", zIndex: 20,
-          }}
+        <motion.nav initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 22 }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: isMobile ? "0 12px" : "0 22px", height: isMobile ? 52 : 60, flexShrink: 0, borderBottom: "1.5px solid rgba(123,47,190,0.12)", background: "rgba(255,255,255,0.62)", backdropFilter: "blur(20px)", zIndex: 20 }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <motion.img src={NexMeetLogo} alt="NexMeet"
-              animate={{ rotate: [0,5,-5,0] }} transition={{ duration: 5, repeat: Infinity }}
-              style={{ width: isMobile ? 30 : 40, height: isMobile ? 30 : 40, objectFit: "contain" }}
-            />
+            <motion.img src={NexMeetLogo} alt="NexMeet" animate={{ rotate: [0,5,-5,0] }} transition={{ duration: 5, repeat: Infinity }} style={{ width: isMobile ? 30 : 40, height: isMobile ? 30 : 40, objectFit: "contain" }} />
             {!isMobile && (
               <div>
                 <div style={{ fontFamily: "'Barriecito', cursive", fontSize: 21, color: "#5A1A9A", letterSpacing: "1px", textShadow: "1px 1px 0 rgba(245,197,163,0.6)" }}>NexMeet</div>
@@ -504,9 +448,17 @@ const Room = () => {
             )}
           </div>
 
-          <motion.div
-            animate={connectionState === "connected" ? { opacity: [1,0.55,1] } : {}}
-            transition={{ duration: 2, repeat: Infinity }}
+          {/* ✅ NEW — show my current emotion in navbar */}
+          {myEmotion && emotionEnabled && (
+            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
+              style={{ fontFamily: "'Caveat Brush', cursive", fontSize: 12, color: "#5A1A9A", background: "rgba(123,47,190,0.08)", border: "1px solid rgba(123,47,190,0.15)", borderRadius: 20, padding: "3px 12px", display: "flex", alignItems: "center", gap: 5 }}
+            >
+              🧠 You: {myEmotion}
+              {remoteEmotion && <span style={{ opacity: 0.6 }}>· {remoteEmailId?.split("@")[0]}: {remoteEmotion}</span>}
+            </motion.div>
+          )}
+
+          <motion.div animate={connectionState === "connected" ? { opacity: [1,0.55,1] } : {}} transition={{ duration: 2, repeat: Infinity }}
             style={{ display: "flex", alignItems: "center", gap: 6, background: `${stateColor}1A`, border: `1.5px solid ${stateColor}44`, borderRadius: 20, padding: isMobile ? "3px 10px" : "4px 14px" }}
           >
             <div style={{ width: 7, height: 7, borderRadius: "50%", background: stateColor }} />
@@ -518,13 +470,7 @@ const Room = () => {
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {remoteEmailId && (
               <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
-                style={{
-                  background: "rgba(123,47,190,0.08)", border: "1.5px solid rgba(123,47,190,0.18)",
-                  borderRadius: 20, padding: "3px 12px", fontSize: 11,
-                  color: "#5A1A9A", fontFamily: "'Forum', serif", fontWeight: 600,
-                  display: "flex", alignItems: "center", gap: 5,
-                  maxWidth: isMobile ? 110 : 200, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
-                }}
+                style={{ background: "rgba(123,47,190,0.08)", border: "1.5px solid rgba(123,47,190,0.18)", borderRadius: 20, padding: "3px 12px", fontSize: 11, color: "#5A1A9A", fontFamily: "'Forum', serif", fontWeight: 600, display: "flex", alignItems: "center", gap: 5, maxWidth: isMobile ? 110 : 200, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}
               >👤 {remoteEmailId}</motion.div>
             )}
             {!isMobile && <div style={{ fontFamily: "'Barriecito', cursive", fontSize: 13, color: "rgba(123,47,190,0.35)" }}>✦ Tanishq</div>}
@@ -543,19 +489,42 @@ const Room = () => {
         {/* ── Main content ── */}
         <div style={{ flex: 1, display: "flex", overflow: "hidden", padding: isMobile ? "8px" : "12px 14px", gap: isMobile ? 8 : 12, minHeight: 0 }}>
           <div style={{ flex: 1, display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 8 : 12, minWidth: 0, minHeight: 0 }}>
-            <div style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
+
+            {/* ✅ Remote video — position:relative so EmotionDetector canvas overlays correctly */}
+            <div style={{ flex: 1, minHeight: 0, minWidth: 0, position: "relative" }}>
               <VideoTile
-                videoRef={remoteVideoRef} label={remoteEmailId ?? "Remote"}
-                isMuted={false} speaking={connectionState === "connected" && !!remoteStream}
+                videoRef={remoteVideoRef}
+                label={remoteEmailId ?? "Remote"}
+                isMuted={false}
+                speaking={connectionState === "connected" && !!remoteStream}
                 waiting={!remoteStream}
                 waitingLabel={remoteEmailId ? `Connecting with ${remoteEmailId}…` : "Share the room link to invite someone"}
-                index={0} handRaised={remoteHandRaised}
+                index={0}
+                handRaised={remoteHandRaised}
+              />
+              {/* ✅ NEW — AI Emotion on remote video */}
+              <EmotionDetector
+                videoRef={remoteVideoRef}
+                label={remoteEmailId ?? "Remote"}
+                enabled={emotionEnabled && !!remoteStream}
+                onEmotionChange={(emotion) => setRemoteEmotion(emotion)}
               />
             </div>
-            <div style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
+
+            {/* ✅ My video — position:relative so EmotionDetector canvas overlays correctly */}
+            <div style={{ flex: 1, minHeight: 0, minWidth: 0, position: "relative" }}>
               <VideoTile
-                videoRef={myVideoRef} label={`You${isScreenSharing ? " 🖥" : ""}`}
-                isMuted speaking={false} waiting={false} index={1} handRaised={handRaised}
+                videoRef={myVideoRef}
+                label={`You${isScreenSharing ? " 🖥" : ""}`}
+                isMuted speaking={false} waiting={false} index={1}
+                handRaised={handRaised}
+              />
+              {/* ✅ NEW — AI Emotion on my video */}
+              <EmotionDetector
+                videoRef={myVideoRef}
+                label="You"
+                enabled={emotionEnabled}
+                onEmotionChange={(emotion) => setMyEmotion(emotion)}
               />
             </div>
           </div>
@@ -563,19 +532,12 @@ const Room = () => {
           {/* Chat panel */}
           <AnimatePresence>
             {chatOpen && (
-              <motion.div
-                key="chat"
+              <motion.div key="chat"
                 initial={{ x: isMobile ? 0 : 320, y: isMobile ? "100%" : 0, opacity: 0 }}
                 animate={{ x: 0, y: 0, opacity: 1 }}
                 exit={{ x: isMobile ? 0 : 320, y: isMobile ? "100%" : 0, opacity: 0 }}
                 transition={{ type: "spring", stiffness: 280, damping: 28 }}
-                style={{
-                  ...(isMobile ? { position: "absolute", inset: 0, zIndex: 50, borderRadius: 20 } : { width: 296, flexShrink: 0 }),
-                  display: "flex", flexDirection: "column",
-                  background: "rgba(255,255,255,0.9)", backdropFilter: "blur(24px)",
-                  border: "1.5px solid rgba(123,47,190,0.15)", borderRadius: 20,
-                  overflow: "hidden", boxShadow: "0 12px 40px rgba(123,47,190,0.16)",
-                }}
+                style={{ ...(isMobile ? { position: "absolute", inset: 0, zIndex: 50, borderRadius: 20 } : { width: 296, flexShrink: 0 }), display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.9)", backdropFilter: "blur(24px)", border: "1.5px solid rgba(123,47,190,0.15)", borderRadius: 20, overflow: "hidden", boxShadow: "0 12px 40px rgba(123,47,190,0.16)" }}
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 16px", borderBottom: "1.5px solid rgba(123,47,190,0.1)", background: "rgba(123,47,190,0.05)", flexShrink: 0 }}>
                   <span style={{ color: "#5A1A9A", fontFamily: "'Caveat Brush', cursive", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 7 }}><ChatIcon /> Chat</span>
@@ -615,28 +577,39 @@ const Room = () => {
         </div>
 
         {/* ── CONTROLS BAR ── */}
-        <motion.div
-          initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 22 }}
+        <motion.div initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 22 }}
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: isMobile ? 4 : 8, padding: isMobile ? "8px 4px env(safe-area-inset-bottom,8px)" : "10px 20px", flexShrink: 0, flexWrap: "wrap", borderTop: "1.5px solid rgba(123,47,190,0.12)", background: "rgba(255,255,255,0.65)", backdropFilter: "blur(20px)" }}
         >
-          <CtrlBtn onClick={toggleMute}   active={isMuted}    icon={isMuted ? MicOffIcon : MicOnIcon}     label={isMuted ? "Unmute" : "Mute"} />
-          <CtrlBtn onClick={toggleCamera} active={isCameraOff} icon={isCameraOff ? CamOffIcon : CamOnIcon} label={isCameraOff ? "Cam On" : "Cam Off"} />
+          <CtrlBtn onClick={toggleMute}       active={isMuted}      icon={isMuted ? MicOffIcon : MicOnIcon}       label={isMuted ? "Unmute" : "Mute"} />
+          <CtrlBtn onClick={toggleCamera}     active={isCameraOff}  icon={isCameraOff ? CamOffIcon : CamOnIcon}  label={isCameraOff ? "Cam On" : "Cam Off"} />
           <CtrlBtn onClick={isScreenSharing ? stopScreenShare : startScreenShare} active={isScreenSharing} icon={ScreenIcon} label={isScreenSharing ? "Stop" : "Share"} />
 
-          <motion.div animate={handRaised ? { rotate: [0, 14, -10, 14, 0] } : {}} transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.5 }}>
+          <motion.div animate={handRaised ? { rotate: [0,14,-10,14,0] } : {}} transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.5 }}>
             <CtrlBtn onClick={toggleHand} active={handRaised} icon={HandIcon} label={handRaised ? "Lower" : "Raise"} />
           </motion.div>
 
           <CtrlBtn onClick={isRecording ? stopRecording : startRecording} active={isRecording} danger={isRecording} icon={isRecording ? StopIcon : RecordIcon} label={isRecording ? "Stop" : "Record"} disabled={!remoteStream && !isRecording} />
 
           <div style={{ width: 1, height: 34, background: "rgba(123,47,190,0.18)", margin: "0 2px", flexShrink: 0 }} />
+
           <CtrlBtn onClick={() => setChatOpen((p) => !p)} active={chatOpen} icon={ChatIcon} label="Chat" badge={unreadCount} />
+
           <div style={{ width: 1, height: 34, background: "rgba(123,47,190,0.18)", margin: "0 2px", flexShrink: 0 }} />
 
-          <motion.button
-            whileHover={{ scale: 1.05, boxShadow: "0 8px 32px rgba(239,68,68,0.5)" }}
-            whileTap={{ scale: 0.95 }}
+          {/* ✅ NEW — AI Emotion toggle button */}
+          <motion.div animate={emotionEnabled ? { scale: [1, 1.06, 1] } : {}} transition={{ duration: 2.5, repeat: Infinity }}>
+            <CtrlBtn
+              onClick={() => setEmotionEnabled(p => !p)}
+              active={emotionEnabled}
+              icon={BrainIcon}
+              label={emotionEnabled ? "AI On" : "AI Off"}
+            />
+          </motion.div>
+
+          <div style={{ width: 1, height: 34, background: "rgba(123,47,190,0.18)", margin: "0 2px", flexShrink: 0 }} />
+
+          {/* End Call */}
+          <motion.button whileHover={{ scale: 1.05, boxShadow: "0 8px 32px rgba(239,68,68,0.5)" }} whileTap={{ scale: 0.95 }}
             onClick={() => window.location.href = "/"}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: isMobile ? "9px 14px" : "9px 20px", borderRadius: 16, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", boxShadow: "0 4px 20px rgba(239,68,68,0.35)" }}
           >
